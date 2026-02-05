@@ -19,10 +19,18 @@ jobs:
           sudo apt-get install -y lftp
           lftp --version
 
-      - name: FTP Upload (debug)
+      - name: FTP Upload (FTPS, ignore cert)
         run: |
           set -x
           lftp -d -c "
-            open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }};
+            set ftp:ssl-allow true
+            set ftp:ssl-force true
+            set ftp:ssl-protect-data true
+            set ftp:passive-mode true
+
+            # مهم جدًا: تجاهل التحقق من الشهادة
+            set ssl:verify-certificate false
+
+            open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ftps://{{ secrets.FTP_SERVER }}
             mirror -R ./ /httpdocs/ --delete --verbose
           "
